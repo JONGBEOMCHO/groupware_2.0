@@ -140,7 +140,8 @@ public class WriteNoticeHandler implements CommandHandler {
 		// 2.비즈니스로직처리 Controller->Service->DAO->DB->DAO->Service->Controller
 		//파라미터  WriteRequest writeReq : Writer(로그인한 유저id, 로그인한 유저명), 입력제목, 입력내용*/
 		//리턴타입 Integer : notice테이블에 입력된 글번호
-		int newNoticeNo = writeNoticeService.write(writeReq); //Integer 타입에서 언박싱된것 이건 큰것에서 작은것으로 ~! 이건 자동 언박싱 또는 자동형변환이다.
+//		int newNoticeNo = writeNoticeService.write(writeReq); //  ★★★★★★★★★★※emp_no 참조키 제약사항 걸기 전 소스
+		int newNoticeNo = writeNoticeService.write(writeReq, authUser); //Integer 타입에서 언박싱된것 이건 큰것에서 작은것으로 ~! 이건 자동 언박싱 또는 자동형변환이다.
 		request.setAttribute("newNoticeNo", newNoticeNo); //-->그런데 다시 오브젝트 타입... 이럴거면 언박싱하는 의미가...
 		request.setAttribute("rowSize", rowSize); //로우사이즈
 		request.setAttribute("pageNo", pageNo); //

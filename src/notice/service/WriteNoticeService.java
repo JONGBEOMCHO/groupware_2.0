@@ -4,12 +4,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
 
+import auth.service.User;
+import jdbc.JdbcUtil;
+import jdbc.conn.ConnectionProvider;
 import notice.dao.NoticeContentDAO;
 import notice.dao.NoticeDAO;
 import notice.model.Notice;
 import notice.model.NoticeContent;
-import jdbc.JdbcUtil;
-import jdbc.conn.ConnectionProvider;
 
 //p638
 //글쓰기 기능을 제공하는 서비스클래스
@@ -26,7 +27,8 @@ public class WriteNoticeService {
 	//글입력
 	/*파라미터  WriteRequest writeReq : Writer(로그인한 유저id, 로그인한 유저명), 입력제목, 입력내용*/
 	//리턴타입 Integer : notice테이블에 입력된 글번호
-	public Integer write(WriteRequest writeReq) {
+//	public Integer write(WriteRequest writeReq) { ★★★★★★★★★★※emp_no 참조키 제약사항 걸기 전 소스
+	public Integer write(WriteRequest writeReq, User authUser) {
 		Connection conn = null;
 		
 		try {
@@ -37,7 +39,8 @@ public class WriteNoticeService {
 			
 			//파라미터 Notice notice:Writer(로그인한유저id,로그인한유저명),입력제목,입력내용, 입력일,마지막수정일 추가
 			//Notice테이블에 마지막 insert + Notice테이블에 마지막 insert한 id가져오기
-			Notice savedNotice = noticeDAO.insert(conn, notice);//Notice테이블에 insert //p639 26라인
+//			Notice savedNotice = noticeDAO.insert(conn, notice);//Notice테이블에 insert //p639 26라인     //  ★★★★★★★★★★※emp_no 참조키 제약사항 걸기 전 소스
+			Notice savedNotice = noticeDAO.insert(conn, notice, authUser);//Notice테이블에 insert //p639 26라인
 			if(savedNotice==null) {
 				throw new RuntimeException("notice테이블에 insert하면서 발생한 error(insert 실패)");
 			}

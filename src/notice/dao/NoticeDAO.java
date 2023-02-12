@@ -9,10 +9,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import auth.service.User;
+import jdbc.JdbcUtil;
 import notice.model.Notice;
 import notice.model.Writer;
-import notice.service.WriteRequest;
-import jdbc.JdbcUtil;
 
 //p647
 //이 클래스는 notice, notice_content테이블과 관련된 DB작업실행 클래스이다.
@@ -256,11 +259,12 @@ public class NoticeDAO {
 	//글쓰기
 	/*파라미터  Notice notice : Writer(로그인한 유저id, 로그인한 유저명), 입력제목, 입력내용*/
 	//리턴타입 Notice : 
-	public Notice insert(Connection conn, Notice notice) throws SQLException  {
+//	public Notice insert(Connection conn, Notice notice) throws SQLException  { // ★★★★★★★★※emp_no 참조키 제약사항 걸기 전 소스
+	public Notice insert(Connection conn, Notice notice, User authUser) throws SQLException  {
 		PreparedStatement pstmt = null; // insert용
 		Statement stmt =null; //select용
-		String sql = "insert into notice (notice_no, writer_id, writer_name, title, regdate, moddate, read_cnt, isshow) "+ 
-					 "values(tmp_seq.NEXTVAL, ?, ?, ?, ?, ?, 0, 'Y')";
+		String sql = "insert into notice (notice_no, writer_id, writer_name, title, regdate, moddate, read_cnt, isshow, emp_no) "+ 
+					 "values(tmp_seq.NEXTVAL, ?, ?, ?, ?, ?, 0, 'Y', ?)";
 		ResultSet rs =null;
 		try {
 			pstmt = conn.prepareStatement(sql);
@@ -269,6 +273,7 @@ public class NoticeDAO {
 			pstmt.setString(3, notice.getTitle());
 			pstmt.setTimestamp(4, toTimestamp(notice.getRegdate()) ); //입력일
 			pstmt.setTimestamp(5, toTimestamp(notice.getModdate()) ); //마지막 수정일
+			pstmt.setInt(6, authUser.getEmp_no()); // ★★★★★★★★※emp_no 참조키 제약사항 걸기 전에는 없었음.
 			int cnt = pstmt.executeUpdate();
 			System.out.println("insert결과행수"+cnt);
 			
