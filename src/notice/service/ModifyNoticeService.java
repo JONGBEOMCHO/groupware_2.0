@@ -3,9 +3,12 @@ package notice.service;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import com.oreilly.servlet.MultipartRequest;
+
 import notice.dao.NoticeContentDAO;
 import notice.dao.NoticeDAO;
 import notice.model.Notice;
+import notice.model.NoticeFile;
 import auth.service.User;
 import jdbc.JdbcUtil;
 import jdbc.conn.ConnectionProvider;
@@ -69,6 +72,78 @@ public class ModifyNoticeService {
 			JdbcUtil.rollback(conn);
 		}
 	}
+
+	
+	
+	
+	public NoticeFile fileInsert(ModifyRequest modReq, User authUser) {
+		Connection conn = null;
+		try {
+			conn = ConnectionProvider.getConnection();
+				if( modReq.getModiFile().getFile_name() != null ){
+					NoticeFile file = new NoticeFile(modReq.getNoticeNumber(), 
+													modReq.getModiFile().getFile_name(),
+													modReq.getModiFile().getOri_name(),
+													modReq.getModiFile().getFile_type(),
+													modReq.getModiFile().getFile_size()
+													);
+				System.out.println(modReq.getNoticeNumber());
+			
+				NoticeFile noticeFile = noticeDAO.fileInsert(conn, file);
+				conn.commit();
+				return noticeFile;
+				}
+				return null;
+				 
+			}catch (SQLException e) {
+				e.printStackTrace();
+				JdbcUtil.rollback(conn);
+			}catch (RuntimeException e) {
+				JdbcUtil.rollback(conn);
+			}finally {
+				JdbcUtil.close(conn);
+			}
+		return null;
+	}
+	
+	
+
+	
+
+	public NoticeFile fileUpdate(ModifyRequest modReq, User authUser) {
+		Connection conn = null;
+		try {
+			conn = ConnectionProvider.getConnection();
+			
+				if( modReq.getModiFile().getFile_name() != null ){
+					NoticeFile file = new NoticeFile(modReq.getNoticeNumber(), 
+													modReq.getModiFile().getFile_name(),
+													modReq.getModiFile().getOri_name(),
+													modReq.getModiFile().getFile_type(),
+													modReq.getModiFile().getFile_size()
+													);
+				System.out.println(modReq.getNoticeNumber());
+				System.out.println("file내용!!!!!!!!!!!"+file);
+				NoticeFile noticeFile = noticeDAO.fileUpdate(conn, file);
+				conn.commit();
+				return noticeFile;
+				}
+				return null;
+				 
+			}catch (SQLException e) {
+				e.printStackTrace();
+				JdbcUtil.rollback(conn);
+			}catch (RuntimeException e) {
+				JdbcUtil.rollback(conn);
+			}finally {
+				JdbcUtil.close(conn);
+			}
+		return null;
+	}
+
+
+
+
 	
 	//p668 47라인
 		/*파라미터

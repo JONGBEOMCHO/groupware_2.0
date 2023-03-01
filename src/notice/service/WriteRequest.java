@@ -2,6 +2,7 @@ package notice.service;
 
 import java.util.Map;
 
+import notice.model.NoticeFile;
 import notice.model.Writer;
 
 //p641, 637
@@ -15,11 +16,21 @@ public class WriteRequest {
 	private String title;
 	private String content;
 	
+	private NoticeFile uploadFile;
+	
 	//생성자
 	public WriteRequest(Writer writer, String title, String content) {
 		this.writer=writer;
 		this.title=title;
 		this.content=content;
+	}
+	
+	
+	public WriteRequest(Writer writer, String title, String content, NoticeFile uploadFile) {
+		this.writer=writer;
+		this.title=title;
+		this.content=content;
+		this.uploadFile=uploadFile;
 	}
 	
 	
@@ -37,7 +48,20 @@ public class WriteRequest {
 		return content;
 	}
 	
-	//유효성 검사 - 필수입력체크
+	
+	
+	
+	public NoticeFile getUploadFile() {
+		return uploadFile;
+	}
+
+
+	public void setUploadFile(NoticeFile uploadFile) {
+		this.uploadFile = uploadFile;
+	}
+
+
+		//유효성 검사 - 필수입력체크
 		public void validate(Map<String, Boolean> errors) {
 			if(title==null || title.isEmpty()) {
 				errors.put("title", Boolean.TRUE);
@@ -48,10 +72,19 @@ public class WriteRequest {
 		}
 
 
-	@Override
-	public String toString() {
-		return "WriteRequest [writer=" + writer + ", title=" + title + ", content=" + content + "]";
-	}
+		@Override
+		public String toString() {
+			return "WriteRequest [writer=" + writer + ", title=" + title + ", content=" + content + ", uploadFile="
+					+ uploadFile + "]";
+		}
+
+
+		/*
+		 * @Override public String toString() { return "WriteRequest [writer=" + writer
+		 * + ", title=" + title + ", content=" + content + "]"; }
+		 */
+		
+		
 	
 	
 	

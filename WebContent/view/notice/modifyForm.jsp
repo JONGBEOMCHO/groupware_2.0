@@ -39,7 +39,7 @@
     
     <!-- Global Init -->
     <script src="<%=request.getContextPath()%>/assets/js/custom.js"></script>
-    
+    <script src="https://cdn.ckeditor.com/ckeditor5/12.0.0/classic/ckeditor.js"></script>
     <style>
  		table { 
   	    width: 800px;
@@ -119,18 +119,66 @@
 /* 	    background: #C5CAD7 */
 		padding-left : 5px; 
 	 	}
+	 	
+	 	
+	 	.input-file-button1{
+		  padding: 6px 25px;
+		  background-color:#4682b4;
+		  border-radius: 4px;
+		  color: white;
+		  cursor: pointer;
+		}
+		
+		.input-file-button2{
+		  padding: 6px 25px;
+		  background-color:#FF6600;
+		  border-radius: 4px;
+		  color: white;
+		  cursor: pointer;
+		}
     </style>
     
         <script>
+        //$('<input type="file" name="modifyFile" id="modifyFile"/><br><br>').insertAfter(this);
+		  //$("#modifyFile").append("<input type='file' name='modifyFile' id='modifyFile'/><br><br>");
+		  //$("#modifyFile").append("<input type=\'file\' name=\'modifyFile\' id=\'modifyFile\' /><br/><br/>");
+		  //$("#modifyFile").paraent().append($('<input type="file" name="modifyFile" id="modifyFile"/><br><br>');
+		  //$("#modifyFile").paraent().append($("<input/>" {type:"file",name:"modifyFile",id:'modifyFile'})).append("<br><br>");
+		  //$("#modDelBtn, #modDel").remove();
+		  // $('<input type="file" name="modifyFile" id="modifyFile"/><br><br>').insertAfter(this);
+		
+		  //" <input type=\'file\' name=\'modifyFile\' id=\'modifyFile\' /><br/><br/>."
+		  //$("#modDelBtn").click(function(){
+		  //$(".modFileAdd").append("<input type="file" name="modifyFile" id="modifyFile"/>");
+		  
+		  
+		          		
+//         		$("#modDelBtn").on({
+//         		    click: function () { //마우스 p 태그 안에 들어왔을 때,
+//         		        //alert("mouseenter 이벤트가 발생했습니다.");
+//         		        //$("#modDel").remove(this);
+//         		        $("#modDel").remove(this);
+//         		    },
+//         		    click: function () { //마우스 클릭 p 태그 안에서 일어날 때,
+//         		        //alert("click 이벤트가 발생했습니다.");
+//         		        $('<input type="file" name="modifyFile" id="modifyFile"/><br><br>').insertAfter(this);
+//         		    }
+        
         	$(document).ready(function(){
-
-        	});
+        		$("#modDelBtn").click(function(){
+        		    //alert('첨부파일 삭제완료');
+        		 $("#modDel").remove();
+        		 });	  
+      		
+	        });
+      
+			
         	
         	function formSubmit(){
         		$("#modifyFrm").submit();
 //         		alert("게시글 수정에 성공하셨습니다.");
-
         	};
+        	
         	
         	
 //         	function comMod(){
@@ -150,6 +198,7 @@
 	new ModifyRequest(로그인한 userid, 글번호, db의 작성자명, db의 title, db의 내용)
 	request.setAttribute("modReq", modReq);
 	request.setAttribute("pageNo", pageNo);
+	request.setAttribute("no", no);
 	request.setAttribute("rowSize", rsize);
 	request.setAttribute("noticeData1", noticeData1);
 
@@ -162,16 +211,18 @@ ${modReq}<br/><br/><br/><br/>
 <%--  <a href="<%=request.getContextPath()%>/index.jsp">HOME</a> --%>
 <!-- <p class="home" style="text-align: left; margin-left:150px;"> -->
 <p class="home" style="margin:0 auto; max-width: 950px;">
-<a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a>
+<a href="<%=request.getContextPath()%>/chat.do">HOME</a>
 </p>
  <hr/>
   
 <br/><br/>
 <!--  <h3>modifyForm.jsp</h3> -->
  <form name="modifyFrm" id= "modifyFrm"
- 		method="post" action="<%=request.getContextPath()%>/notice/modify.do"> 
+ 		method="post" action="<%=request.getContextPath()%>/notice/modify.do" enctype="multipart/form-data"> 
  <input type="hidden" name="pageNo" id="pageNo" value="${pageNo}"/>
  <input type="hidden" name="rowSize" id="rowSize" value="${rowSize}"/>
+ <input type="hidden" name="no" id="no" value="${modReq.noticeNumber}"/>
+
  
  <table border="1">
  	<tr id="t1" style="height:50px;">
@@ -204,6 +255,38 @@ ${modReq}<br/><br/><br/><br/>
  		</td>
  	</tr>
  	
+ 	<tr>
+ 		<th>첨부파일</th>
+ 		<td>
+ 			<c:choose>
+ 				<c:when test="${noticeFile eq null}">
+ 					<div class=modFileAdd>
+					<input type="file" name="modifyFile" id="modifyFile"/><br/><br/>
+					</div>
+				</c:when>
+ 				<c:when test="${noticeFile ne null}">
+ 					<div id=modDel>
+ 					<label class="input-file-button1" for="input-file1">
+					  기존 업로드된 파일
+					</label><br/>
+ 					<img title="${noticeFile.file_name}" class="file-img" src="../assets/images/clip2.png" width="20px" height="20px"/>${noticeFile.file_name}&nbsp;&nbsp;(${finalUnit})
+<!--  					<img class="file-img" src="../assets/images/ex.png" width="15px" height="15px"/> -->
+<%-- 					 <a href="${contextPath}/fileDelete?file=${noticeFile}&no=${modReq.noticeNumber}&pageNo=${pageNo}&rowSize=${rowSize}"> --%>
+<!-- 					 <button type="button" id="modDelBtn" style="background-color:transparent; border:none;"><img src="../assets/images/ex.png" style="width:15px; height:15px;"/></button> -->
+<!-- 					 </a> -->
+					<br/><br/><br/>
+					<label class="input-file-button2" for="input-file2">
+					  업로드된 파일 수정
+					</label><br/>
+<!-- 					<input type="file" id="input-file" style="display:none"/> -->
+					<input type="file" name="modifyFile2" id="modifyFile2"/>
+					</div>
+ 				</c:when>
+ 			</c:choose>
+ 		</td>
+ 	</tr>
+ 	
+ 	
  	 <tr style="height:50px;">
  		<td colspan="2" style="text-align:center;">
 <!--  		<input type="submit" id="ism" value="수정하기"/> -->
@@ -227,7 +310,7 @@ ${modReq}<br/><br/><br/><br/>
  	
  
  </table>
- 		<input type="hidden" name="no" id="no" value="${modReq.noticeNumber}"/>
+ 		
 <%--  		<input type="hidden" name="writer_name" id="writer_name" value="${modReq.writer_name}"/>   --%>
  		<!-- 런타임 익셉션 떨어져서 숨기고 no이름 값으로 속성을 안보이게 넘긴다.히든!! 위에 no값은 form태그 안에만 있으면 어디든 위치는 오케이다-->
  		<%-- 여기에서는 작성자명을 수정처리컨트롤러에 넘기는 방식으로 추가하였다.
@@ -235,7 +318,7 @@ ${modReq}<br/><br/><br/><br/>
  </form>
  
  
- 
+ <script src="${pageContext.request.contextPath}/js/ckeditor.js"></script>
  
 <%@ include file="../module/bottom00.jsp" %>
 </body>

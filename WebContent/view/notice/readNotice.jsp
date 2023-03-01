@@ -145,9 +145,11 @@
 
 
 <%--  <a href="<%=request.getContextPath()%>/index.jsp">HOME</a> --%>
+<%--  <a href="<%=request.getContextPath()%>/chat.do">HOME</a> --%>
 <!-- <p class="home" style="text-align: left; margin-left:150px;"> -->
 <p class="home" style="margin:0 auto; max-width: 950px;">
-<a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a>
+<%-- <a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a> --%>
+<a href="<%=request.getContextPath()%>/chat.do">HOME</a>
 </p>
  <hr/>
 
@@ -195,6 +197,23 @@
  		<br/></td>
  	</tr>
  	
+ 	 <tr style="height:50px;">
+ 		<th class="h">첨부파일</th>
+ 		<td class="c">
+		<c:if test="${noticeFile ne null}">
+<%--  		<a href="<c:url value='${request.getServletContext().getRealPath("/upload")}/${noticeFile.file_name}'/>"></a> --%>
+<%-- 		<img title="${noticeFile.file_name}" class="file-img" src="../assets/images/clip2.png" width="20px" height="20px"/>
+ 					${noticeFile.file_name} --%>
+<%--			<a href="${request.getServletContext().getRealPath("/upload")}/${noticeFile.file_name}" download>
+ 			<img title="${noticeFile.file_name}" class="file-img" src="../assets/images/clip2.png" width="20px" height="20px"/>
+ 			${noticeFile.file_name}</a>--%>
+ 			<a href="<c:url value='${request.getServletContext().getRealPath("/upload")}/notice/download.dong?fileName=${noticeFile.file_name}'/>">
+ 			<img title="${noticeFile.file_name}" class="file-img" src="../assets/images/clip2.png" width="20px" height="20px"/>
+ 			${noticeFile.file_name} &nbsp;&nbsp; (${finalUnit})</a>
+ 		</c:if>
+ 		</td>
+ 	</tr>
+
  	 <tr style="height:50px;">
  		<td colspan="2" style="text-align:center;" class="c">
  		<%--pp662 29라인 

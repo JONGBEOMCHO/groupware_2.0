@@ -20,6 +20,7 @@
     
     
     <script src="<%=request.getContextPath()%>/assets/js/jquery-2.1.0.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/12.0.0/classic/ckeditor.js"></script>
 
     <!-- Bootstrap -->
     <script src="<%=request.getContextPath()%>/assets/js/popper.js"></script>
@@ -119,15 +120,19 @@
 <%--  <a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a> --%>
 <!-- <p class="home" style="text-align: left; margin-left:150px;"> -->
 <p class="home" style="margin:0 auto; max-width: 950px;">
-<a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a>
+<%-- <a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a> --%>
+<a href="<%=request.getContextPath()%>/chat.do">HOME</a>
 <!-- <h6></h6> -->
 </p>
 <hr/>
 
 <br/><br/><br/><br/>
 <!--  <h3>writeForm.jsp</h3> -->
+
+<!--  <form name="writeFrm" id= "writeFrm" -->
+<%--  		method="post" action="<%=request.getContextPath()%>/notice/write.do"> --%>
  <form name="writeFrm" id= "writeFrm"
- 		method="post" action="<%=request.getContextPath()%>/notice/write.do">
+ 		method="post" action="<%=request.getContextPath()%>/notice/write.do" enctype="multipart/form-data">
  <input type="hidden" id="rowSize" name="rowSize" value="${rowSize}"/>
  <input type="hidden" id="pageNo" name="pageNo" value="${pageNo}"/> 
  
@@ -153,6 +158,16 @@
  		
  		</td>
  	</tr>
+
+ 	<tr>
+ 		<th>첨부파일</th>
+ 		<td>
+	    <input type="file" name="uploadFile"><br/><br/>
+<!-- 	    <input type="submit" value="UPLOAD"><br/> -->
+ 		
+ 		</td>
+ 	</tr>
+ 	
  	
  	 <tr>
  		<td colspan="2" style="text-align:center;">
@@ -181,6 +196,26 @@
  		 여기에서는 작성자명을 수정처리컨트롤러에 넘기는 방식으로 추가하였다.
  		현재방식이라면 DB의 작성자명과 세션에 담긴 이름이 동일하므로 세션으로 대체해도 된다 --%>
  </form>
+
+
+
+
+<%-- <form name="frmName" method="post" enctype="multipart/form-data" 
+action="<%=request.getContextPath()%>/notice/write.do">
+<!--     user<br/>  -->
+<!--     <input name="user"><br/> -->
+<!--     title<br/>  -->
+<!--     <input name="title"><br/> -->
+    file<br/> 
+    <input type="file" name="uploadFile"><br/><br/>
+    <input type="submit" value="UPLOAD"><br/>
+</form> --%>
+
+
+
+<%-- <script src="${pageContext.request.contextPath}/resources/common/js/ckeditor.js"></script> --%>
+<script src="${pageContext.request.contextPath}/js/ckeditor.js"></script>
+
 
 
 <%@ include file="../module/bottom00.jsp" %>

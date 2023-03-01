@@ -7,12 +7,19 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.oreilly.servlet.MultipartRequest;
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+
 import notice.service.NoticeData;
 import notice.service.NoticeNotFoundException;
+import notice.model.NoticeFile;
+import notice.model.Writer;
 import notice.service.ModifyNoticeService;
 import notice.service.ModifyRequest;
 import notice.service.PermissionDeniedException;
 import notice.service.ReadNoticeService;
+import notice.service.WriteNoticeService;
+import notice.service.WriteRequest;
 import auth.service.User;
 import mvc.command.CommandHandler;
 
@@ -25,6 +32,7 @@ public class ModifyNoticeHandler implements CommandHandler {
 	private ReadNoticeService readService = new ReadNoticeService();
 	//수정처리를 위한 서비스 클래스의 참조변수 선언
 	private ModifyNoticeService modifyService = new ModifyNoticeService();
+	//private WriteNoticeService writeService = new WriteNoticeService();
 
 	@Override
 	public String process(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -53,9 +61,6 @@ public class ModifyNoticeHandler implements CommandHandler {
 		}
 
 	}//process의 끝
-
-	
-
 
 	//(해당게시글의 정보가 출력되어있는)수정폼으로 이동-p669 38라인
 	private String processForm(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -96,15 +101,15 @@ public class ModifyNoticeHandler implements CommandHandler {
 			String content = request.getParameter("content"); //수정할 내용
 			
 			
-			
 			//2.비즈니스 로직 수행 -> Service -> DAO -> DB -> DAO -> Service -> 비즈니스 로직 수행(되돌아 온다)
 			/*파라미터
 		 int no : 상세조회할 글번호
 		 boolean increaseReadCount:ture(이면 조회수 증가)
 		 여기에서는 수정을 위해 상세보기를 진행하므로 조회수 증가를 하지 않기 위해 false*/
 			/*NoticeData : notice테이블과 notice_content테이블 관련 데이터*/
-			NoticeData noticeData =  readService.getNotice(no, false);	
+			NoticeData noticeData =  readService.getNotice(no, false);
 			System.out.println("noticeData="+noticeData);
+			
 			
 			//p670 44라인
 			//로그인한 회원은 자신의 글에 한하여 내용을 수정할 수 있어야 한다.
@@ -142,23 +147,28 @@ public class ModifyNoticeHandler implements CommandHandler {
 					noticeData.getNotice().getTitle(), 
 					noticeData.getContent().getContent());*/
 			
-			
-			ModifyRequest modReq = new ModifyRequest(no, 
-					noticeData.getNotice().getWriter().getWriter_name(),
-					noticeData.getNotice().getTitle(), 
-					noticeData.getContent().getContent());
-			
+				ModifyRequest modReq = new ModifyRequest(no, 
+						noticeData.getNotice().getWriter().getWriter_name(),
+						noticeData.getNotice().getTitle(), 
+						noticeData.getContent().getContent());
+	
+
 			
 			System.out.println("modReq="+modReq);
 			
 			NoticeData noticeData1 =  readService.getNotice(no, true);
+			NoticeFile noticeFile =  readService.getFile(no);
 			
+			String finalUnit= unitConvert(noticeFile.getFile_size());
 			
 			//3.Model(비즈니스로직 수행결과)처리 & 4.View - p670 53라인
 			request.setAttribute("modReq", modReq);
+			request.setAttribute("noticeFile", noticeFile);
+			request.setAttribute("finalUnit", finalUnit);
 			request.setAttribute("pageNo", pageNo);
 			request.setAttribute("rowSize", rsize);
 			request.setAttribute("noticeData1", noticeData1);
+
 			
 			//4.View지정~~~변경예정
 			
@@ -176,40 +186,58 @@ public class ModifyNoticeHandler implements CommandHandler {
 	//수정처리-p670 66라인
 	private String processSubmit(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		
+		
+			//파일 업로드(수정)
+			MultipartRequest multi = null; 
+			String saveFolder = request.getServletContext().getRealPath("/upload"); 
+			String encType = "UTF-8";
+			int maxSize = 20*1024*1024;
+			multi = new MultipartRequest(request, saveFolder, maxSize, encType, new	DefaultFileRenamePolicy()); 
+			
 			//컨트롤러가 해야 할 일	
 			//1.파라미터 얻기 no=수정할 글번호
 			
 			//no=상세조회할 글번호 &pageNo=요청페이지&rowSize=1페이지당 게시글수
 			//String strNo = request.getParameter("no");//상세조회할 글번호 &수정할 글번호
-			//만약 파라미터 no(즉, 상세조회할 글번호)가 null이면 RuntimeException발생
-			String strNo = request.getParameter("no");//수정할 글번호
+			//만약 파라미터 no(즉, 상세조회할 글번호)가 null이면 RuntimeException발생			
+			String strNo = multi.getParameter("no");//수정할 글번호
+
 			if(strNo==null) {
 				throw new RuntimeException();
 			}
-			int no = Integer.parseInt(strNo);//상세조회할 글번호 또는 수정을 위한 글 번호
-//			int no = 1;
+			int	no = Integer.parseInt(strNo);//상세조회할 글번호 또는 수정을 위한 글 번호
+			
+			
+//			int no;
 //			if(strNo!=null) {
 //				no = Integer.parseInt(strNo);
 //			}
 //			System.out.println("no="+no);
 			
 			//만약 파라미터 pageNo(즉, 요청페이지)가 null이면 요청페이지를 1로 설정
-			String strPageNo = request.getParameter("pageNo");//보고싶은 페이지
+			String strPageNo = multi.getParameter("pageNo");//보고싶은 페이지
 			int pageNo = 1;
 			if(strPageNo!=null) {
 				pageNo=Integer.parseInt(strPageNo);
 			}		
 			
 			//만약 파라미터 rowSize(페이지당 게시글수)가 null이면 페이지당 게시글수를 3으로 설정
-			String strRowSize = request.getParameter("rowSize");//한페이지당 보여지는 게시물 수
+			String strRowSize = multi.getParameter("rowSize");//한페이지당 보여지는 게시물 수
 			int rsize = 3;
 			if(strRowSize!=null) {
 				rsize = Integer.parseInt(strRowSize);			
 			}
+
+			String title = multi.getParameter("title"); //수정할 제목
+			String content = multi.getParameter("content"); //수정할 내용
+			String writer_name = multi.getParameter("wrtier_name"); 
+		
 			
-			String title = request.getParameter("title"); //수정할 제목
-			String content = request.getParameter("content"); //수정할 내용
-			String writer_name = request.getParameter("wrtier_name"); 
+			//로그인한 유저정보는 세션에서 받자
+			User authUser = (User)request.getSession().getAttribute("AUTHUSER");
+			
+
+			
 			//작성자명(원래 안해도 되는데 아래 modReq 매개변수로 넣기위해서 파라미터값으로 가져온다.덕분에 modifyForm.jsp에도 인풋태그 name 값으로 히든으로 추가하였다.. )//작성자명(원래 안해도 되는데 아래 modReq 매개변수로 넣기위해서 파라미터값으로 가져온다.덕분에 modifyForm.jsp에도 인풋태그 name 값으로 히든으로 추가하였다.. )
 			
 			/*session에 저장된 로그인한 user정보
@@ -229,18 +257,78 @@ public class ModifyNoticeHandler implements CommandHandler {
 													writer_name,
 													title, 
 													content);*/
-			ModifyRequest modReq = new ModifyRequest(no, 
+/*			원본소스
+ 			ModifyRequest modReq = new ModifyRequest(no, 
 													writer_name,
 													title, 
 													content);
+													*/
+								
+/*		
+			ModifyRequest modReq =null;										
+				if(multi.getFilesystemName("modifyFile") == null) {
+						modReq = new ModifyRequest(no, 
+													writer_name,
+													title, 
+													content,
+											new NoticeFile(0,
+													multi.getFilesystemName("modifyFile"),
+													multi.getOriginalFileName("modifyFile"),
+													multi.getContentType("modifyFile"),
+													0)
+								);			
+					}else {
+						modReq = new ModifyRequest(no, 
+													writer_name,
+													title, 
+													content,
+											new NoticeFile(0,
+													multi.getFilesystemName("modifyFile"),
+													multi.getOriginalFileName("modifyFile"),
+													multi.getContentType("modifyFile"),
+													multi.getFile("modifyFile").length())
+													);
+							}											
+			
+*/
 			
 			
-			//3.Model(비즈니스로직 수행결과)처리 & 4.View - p670 53라인
-			request.setAttribute("modReq", modReq);
-			request.setAttribute("rowSize", rsize); //로우사이즈
-			request.setAttribute("pageNo", pageNo); //보고싶은 페이지
-			request.setAttribute("no", no); //글번호
-			
+			ModifyRequest modReq =null;										
+			if(multi.getFilesystemName("modifyFile") != null) {
+				modReq = new ModifyRequest(no, 
+						writer_name,
+						title, 
+						content,
+						new NoticeFile(0,
+								multi.getFilesystemName("modifyFile"),
+								multi.getOriginalFileName("modifyFile"),
+								multi.getContentType("modifyFile"),
+								multi.getFile("modifyFile").length())
+						);
+			}else if((multi.getFilesystemName("modifyFile2") != null)) {
+				modReq = new ModifyRequest(no, 
+						writer_name,
+						title, 
+						content,
+						new NoticeFile(0,
+								multi.getFilesystemName("modifyFile2"),
+								multi.getOriginalFileName("modifyFile2"),
+								multi.getContentType("modifyFile2"),
+								multi.getFile("modifyFile2").length())
+						);
+			}else {
+				modReq = new ModifyRequest(no, 
+						writer_name,
+						title, 
+						content,
+						new NoticeFile(0,
+								multi.getFilesystemName("modifyFile"),
+								multi.getOriginalFileName("modifyFile"),
+								multi.getContentType("modifyFile"),
+								0)
+					);			
+			}		
+
 			//유효성검사 - p670 77라인
 			Map<String, Boolean> errors = new HashMap<String, Boolean>(); //Map 은 인터페이스 이므로 구현 클래스는 자식클래스로 해야한다.
 			request.setAttribute("errors", errors);//p670 78라인
@@ -251,7 +339,38 @@ public class ModifyNoticeHandler implements CommandHandler {
 			try {//p670 83라인
 				//3. 비즈니스 로직 수행 => 유효성 검증된 데이터를 DB에 update 진행해라
 				//파라미터modifyRequest modReq : 글수정을 위한 수정하는 사용자id, 수정할 글번호, 수정할 제목, 수정할 내용
-				modifyService.modify(modReq);
+				//modifyService.modify(modReq);
+				
+				//int modiNoticeNo=0;
+				NoticeFile noticeFile = null;
+				if(multi.getFilesystemName("modifyFile") != null) {
+					
+						modifyService.modify(modReq); //★★★★★★★★★★※emp_no 참조키 제약사항 설정된 소스
+						noticeFile = modifyService.fileInsert(modReq, authUser); //★★★★★★★★★★※emp_no 참조키 제약사항 설정된 소스
+						System.out.println("글수정, 파일 insert~~~~~~~~~~~~~~~");
+				}else if(multi.getFilesystemName("modifyFile2") != null) {
+					System.out.println("modifyFile2 내용"+multi.getFilesystemName("modifyFile2"));
+					System.out.println("modReq 내용"+modReq);
+						modifyService.modify(modReq); //★★★★★★★★★★※emp_no 참조키 제약사항 설정된 소스
+						noticeFile = modifyService.fileUpdate(modReq, authUser); //★★★★★★★★★★※emp_no 참조키 제약사항 설정된 소스
+						System.out.println("글수정, 파일 update~~~~~~~~~~~~~~~");
+						System.out.println("notice File 내용"+noticeFile);
+				}else {
+					modifyService.modify(modReq);
+					System.out.println("글만 수정~~~~~~~~~~~~~~~~~~~~~");
+				}
+				
+				//String finalUnit= unitConvert(noticeFile.getFile_size());
+				
+				//3.Model(비즈니스로직 수행결과)처리 & 4.View - p670 53라인
+				request.setAttribute("modReq", modReq);
+				request.setAttribute("noticeFile", noticeFile);
+				//request.setAttribute("finalUnit", finalUnit);
+				request.setAttribute("rowSize", rsize); //로우사이즈
+				request.setAttribute("pageNo", pageNo); //보고싶은 페이지
+				request.setAttribute("no", no); //글번호	
+				
+
 				
 				//4.View지정~~~변경예정
 				//4.View-P670 85라인
@@ -271,6 +390,25 @@ public class ModifyNoticeHandler implements CommandHandler {
 
 	}//processSubmit()끝
 		
+	
+	//파일 용량 단위 변환 메소드
+	//NoticeFile noticeFile=null;
+	public String unitConvert(long fileSize) {
+		//fileSize = noticeFile.getFile_size();
+		long[] unit = { 1, 1024, 1048576, 1073741824};
+		String[] units= {" Byte", " KB", " MB", " GB"};
+		String value=null;
+		System.out.println("계산입니다."+fileSize/unit[1]);
+		for(int i=0;(fileSize/unit[i])>0; i++) {
+			value=Long.toString(fileSize/unit[i]);
+			value+=units[i];
+			System.out.println(i+"번째"+value);
+		}
+		return value;
+	}	
+	
+
+
 
 	//수정권한 체크 p670 61라인
 	/*파라미터
@@ -291,7 +429,6 @@ public class ModifyNoticeHandler implements CommandHandler {
 		return userId.equals(writerId);
 		
 	}//canMody()끝*/
-		
 	
 
 }

@@ -3,9 +3,10 @@ package notice.command;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import mvc.command.CommandHandler;
+import notice.model.NoticeFile;
 import notice.service.NoticeData;
 import notice.service.ReadNoticeService;
-import mvc.command.CommandHandler;
 
 
 //p659
@@ -17,7 +18,7 @@ public class ReadNoticeHandler implements CommandHandler {
 //	private static final String FORM_VIEW="view/testView.jsp";
 	//p660
 	private ReadNoticeService readService = new ReadNoticeService();
-	
+	private NoticeFile noticeFile = null;
 	@Override
 	public String process(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		System.out.println("ReadNoticeHandler의 Process()호출성공");
@@ -56,22 +57,27 @@ public class ReadNoticeHandler implements CommandHandler {
 		}
 		
 		
-		
 		//2.비즈니스 로직 수행 -> Service -> DAO -> DB -> DAO -> Service -> 비즈니스 로직 수행(되돌아 온다)
 		/*파라미터
 		 int no : 상세조회할 글번호
 		 boolean increaseReadCount:ture(이면 조회수 증가)*/
 		/*NoticeData : notice테이블과 notice_content테이블 관련 데이터*/
 		NoticeData noticeData =  readService.getNotice(no, true);
+		noticeFile = readService.getFile(no);
+		System.out.println("@@@@@@@@@@크레이트!@"+noticeFile.getFile_size());
+		String finalUnit= unitConvert(noticeFile.getFile_size());
 		
+		System.out.println("@@@@@@@@파이널!!!!!"+finalUnit);
 		
 		//3.Model(비즈니스로직 수행결과)처리
 		//릴레이용 pageNo=요청페이지&rowSize=1페이지당 게시글수
 		request.setAttribute("noticeData", noticeData);
+		request.setAttribute("noticeFile", noticeFile);
+		request.setAttribute("finalUnit", finalUnit);
 		request.setAttribute("pageNo", pageNo);
 		request.setAttribute("rowSize", rsize);
 		
-		
+
 		
 		//4.View지정
 		
@@ -81,4 +87,22 @@ public class ReadNoticeHandler implements CommandHandler {
 		//return null;
 	}
 
+
+
+	//파일 용량 단위 변환 메소드
+	//NoticeFile noticeFile=null;
+	public String unitConvert(long fileSize) {
+		//fileSize = noticeFile.getFile_size();
+		long[] unit = { 1, 1024, 1048576, 1073741824};
+		String[] units= {" Byte", " KB", " MB", " GB"};
+		String value=null;
+		System.out.println("계산입니다."+fileSize/unit[1]);
+		for(int i=0;(fileSize/unit[i])>0; i++) {
+			value=Long.toString(fileSize/unit[i]);
+			value+=units[i];
+			System.out.println(i+"번째"+value);
+		}
+		return value;
+	}
+	
 }

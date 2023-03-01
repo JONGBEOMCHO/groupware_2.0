@@ -103,7 +103,8 @@ public class NoticeContentDAO {
 			pstmt.setLong(1, content.getNumber());
 			pstmt.setString(2,content.getContent());
 			int cnt = pstmt.executeUpdate();
-			System.out.println("insert결과행수"+cnt);
+			System.out.println("content insert결과행수"+cnt);
+			System.out.println("!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@"+content);
 			
 			if(cnt>0) { //noticeContent테이블에 insert성공
 				return content;

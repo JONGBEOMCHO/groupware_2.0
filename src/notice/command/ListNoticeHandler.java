@@ -5,11 +5,10 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import auth.service.User;
-import notice.model.Notice;
-import notice.service.NoticePage;
-import notice.service.ListNoticeService;
 import mvc.command.CommandHandler;
+import notice.model.NoticeFile;
+import notice.service.ListNoticeService;
+import notice.service.NoticePage;
 
 //이 클래스는 notice테이블의 목록조회 요청에 따라 호출되는 컨트롤러이다.
 //요청주소 http://localhost/notice/list.do
@@ -94,16 +93,20 @@ public class ListNoticeHandler implements CommandHandler {
 		}else {
 			noticePage = listNoticeService.getNoticePage(choice, keyword, pageNo, rowSize);
 		}
+		System.out.println("시발");
+		List<NoticeFile> noticeFile = listNoticeService.listFile();
 
 		//System.out.println("게시글 수"+noticePage); //list타입에서 NoticePage로 바뀌어서 이제 .size 할 수 없다.
 		//System.out.println("게시글 수"+listNotice.size()); //list타입에서 NoticePage로 바뀌어서 이제 .size 할 수 없다.
 		//3.Model(비즈니스로직 수행결과)처리
 		//request.setAttribute("listNotice", listNotice);
 		request.setAttribute("noticePage", noticePage);
+		request.setAttribute("noticeFile", noticeFile);
 		request.setAttribute("pageNo", pageNo);
 		request.setAttribute("rowSize", rowSize);
 		request.setAttribute("choice", choice);
 		request.setAttribute("keyword", keyword);
+		System.out.println("List 결과"+noticeFile);
 		
 		//4.View지정
 		

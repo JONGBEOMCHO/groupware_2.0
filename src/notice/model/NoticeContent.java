@@ -33,7 +33,7 @@ public class NoticeContent {
 	
 	@Override
 	public String toString() {
-		return "ArticleContent [number=" + number + ", content=" + content + "]";
+		return "NoticeContent [number=" + number + ", content=" + content + "]";
 	}
 	
 	

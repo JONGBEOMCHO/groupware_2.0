@@ -71,7 +71,8 @@
  --%>
 <%--  <a href="<%=request.getContextPath()%>/index.jsp">HOME</a> --%>
  <p class="home" style="margin:0 auto; max-width: 950px;">
-<a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a>
+<%-- <a href="<%=request.getContextPath()%>/view/main.jsp">HOME</a> --%>
+<a href="<%=request.getContextPath()%>/chat.do">HOME</a>
 </p>
  <hr/>
 <!--  <h3>modifySuccess.jsp</h3> -->

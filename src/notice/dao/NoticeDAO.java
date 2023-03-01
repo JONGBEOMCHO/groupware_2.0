@@ -10,11 +10,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import auth.service.User;
 import jdbc.JdbcUtil;
 import notice.model.Notice;
+import notice.model.NoticeFile;
 import notice.model.Writer;
 
 //p647
@@ -275,7 +274,7 @@ public class NoticeDAO {
 			pstmt.setTimestamp(5, toTimestamp(notice.getModdate()) ); //마지막 수정일
 			pstmt.setInt(6, authUser.getEmp_no()); // ★★★★★★★★※emp_no 참조키 제약사항 걸기 전에는 없었음.
 			int cnt = pstmt.executeUpdate();
-			System.out.println("insert결과행수"+cnt);
+			System.out.println("notice insert결과행수"+cnt);
 			
 			if(cnt>0) { //입력이 되었다면
 				//sql쿼리문이 짧아서 바로 입력해준다.
@@ -402,6 +401,287 @@ public class NoticeDAO {
 		}
 	
 		//return count;
+	
+	}
+	
+	
+	
+	
+	//file업로드 관련 메소드(write전용)
+	public NoticeFile fileInsert(Connection conn, NoticeFile file) throws SQLException  {
+		PreparedStatement pstmt = null; // insert용
+		System.out.println("file.getFile_name()sadfzxdf"+file.getFile_name());
+		Statement stmt =null; //select용
+		String sql = "insert into file_upload(notice_no, filename, oriname, filetype, filesize) "+ 
+					 "values(?, ?, ?, ?, ?)";
+//		System.out.println("file.getNotice_no()"+file);
+
+		ResultSet rs =null;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, file.getNotice_no());
+			pstmt.setString(2, file.getFile_name());
+			pstmt.setString(3, file.getOri_name());
+			pstmt.setString(4, file.getFile_type());
+			pstmt.setLong(5, file.getFile_size());
+			int cnt = pstmt.executeUpdate();
+			System.out.println("파일insert결과행수"+cnt);
+
+			if(cnt>0) { //noticeFile테이블에 insert성공
+				//방법1
+				 	//stmt = conn.createStatement();
+					//rs = stmt.executeQuery("select notice_no, filename, oriname, filetype, filesize from file_upload");
+				//if(rs.next()) {
+					/*
+					// 굳이 select문을 한번 더돌려서 getter로 값을 다시 불러와 임시변수에 넣고 그 임시변수를  매개변수로 하는 setter로 NoticeFile객체에 저장해서 리턴...
+					//그러나 이방법은 cnt가 0보다 크면 성공적으로 insert 했다는 의미이기 때문에 사용할 이유가 없다. 그냥 간단하게 리턴을 넘겨주는 편이 간결하다.
+					
+					int ntno = rs.getInt("notice_no");
+					String filename = rs.getString("filename");
+					String oriname = rs.getString("oriname");
+					String filetype = rs.getString("filetype"); 
+					long filesize = rs.getLong("filesize");
+					NoticeFile noticeFile = new NoticeFile();
+					noticeFile.setNotice_no(ntno);
+					noticeFile.setFile_name(filename);
+					noticeFile.setOri_name(oriname);
+					noticeFile.setFile_type(filetype);
+					noticeFile.setFile_size(filesize);
+					
+					return noticeFile;
+					*/
+					
+					//방법2
+					return new NoticeFile(file.getNotice_no(),
+										file.getFile_name(),
+										file.getOri_name(),
+										file.getFile_type(),
+										file.getFile_size()
+										);
+
+				
+			}
+				return null;
+		}finally {
+			JdbcUtil.close(rs);
+			JdbcUtil.close(stmt);
+			JdbcUtil.close(pstmt);
+		}
+		
+	}
+	
+		
+
+	//file업로드 관련 메소드(modify전용)
+	public NoticeFile fileInsert2(Connection conn, NoticeFile file) throws SQLException  {
+		PreparedStatement pstmt = null; // insert용
+		System.out.println("file.getFile_name()sadfzxdf"+file.getFile_name());
+		Statement stmt =null; //select용
+		String sql = "insert into file_upload(filename, oriname, filetype, filesize) "+ 
+					 "values(?, ?, ?, ?)";
+//		System.out.println("file.getNotice_no()"+file);
+
+		ResultSet rs =null;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			//pstmt.setInt(1, file.getNotice_no());
+			pstmt.setString(1, file.getFile_name());
+			pstmt.setString(2, file.getOri_name());
+			pstmt.setString(3, file.getFile_type());
+			pstmt.setLong(4, file.getFile_size());
+			int cnt = pstmt.executeUpdate();
+			System.out.println("파일insert결과행수"+cnt);
+
+			if(cnt>0) { //noticeFile테이블에 insert성공
+				//방법1
+				 	//stmt = conn.createStatement();
+					//rs = stmt.executeQuery("select notice_no, filename, oriname, filetype, filesize from file_upload");
+				//if(rs.next()) {
+					/*
+					// 굳이 select문을 한번 더돌려서 getter로 값을 다시 불러와 임시변수에 넣고 그 임시변수를  매개변수로 하는 setter로 NoticeFile객체에 저장해서 리턴...
+					//그러나 이방법은 cnt가 0보다 크면 성공적으로 insert 했다는 의미이기 때문에 사용할 이유가 없다. 그냥 간단하게 리턴을 넘겨주는 편이 간결하다.
+					
+					int ntno = rs.getInt("notice_no");
+					String filename = rs.getString("filename");
+					String oriname = rs.getString("oriname");
+					String filetype = rs.getString("filetype"); 
+					long filesize = rs.getLong("filesize");
+					NoticeFile noticeFile = new NoticeFile();
+					noticeFile.setNotice_no(ntno);
+					noticeFile.setFile_name(filename);
+					noticeFile.setOri_name(oriname);
+					noticeFile.setFile_type(filetype);
+					noticeFile.setFile_size(filesize);
+					
+					return noticeFile;
+					*/
+					
+					//방법2
+					return new NoticeFile(file.getNotice_no(),
+										file.getFile_name(),
+										file.getOri_name(),
+										file.getFile_type(),
+										file.getFile_size()
+										);
+
+				
+			}
+				return null;
+		}finally {
+			JdbcUtil.close(rs);
+			JdbcUtil.close(stmt);
+			JdbcUtil.close(pstmt);
+		}
+		
+	}
+	
+	
+	
+	
+	//file업데이트(수정) 관련 메소드
+	public NoticeFile fileUpdate(Connection conn, NoticeFile file) throws SQLException  {
+		PreparedStatement pstmt = null; // insert용
+		System.out.println("file.getFile_name()sadfzxdf"+file.getFile_name());
+		Statement stmt =null; //select용
+//		String sql = "insert into file_upload(notice_no, filename, oriname, filetype, filesize) "+ 
+//					 "values(?, ?, ?, ?, ?)";
+		String sql = "update file_upload set filename=?, oriname=?, filetype=?, filesize=? where notice_no=?";
+//			System.out.println("file.getNotice_no()"+file);
+
+		ResultSet rs =null;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, file.getFile_name());
+			pstmt.setString(2, file.getOri_name());
+			pstmt.setString(3, file.getFile_type());
+			pstmt.setLong(4, file.getFile_size());
+			pstmt.setInt(5, file.getNotice_no());
+			int cnt = pstmt.executeUpdate();
+			System.out.println("파일update결과행수"+cnt);
+
+			if(cnt>0) { //noticeFile테이블에 insert성공
+				//방법1
+				 	//stmt = conn.createStatement();
+					//rs = stmt.executeQuery("select notice_no, filename, oriname, filetype, filesize from file_upload");
+				//if(rs.next()) {
+					/*
+					// 굳이 select문을 한번 더돌려서 getter로 값을 다시 불러와 임시변수에 넣고 그 임시변수를  매개변수로 하는 setter로 NoticeFile객체에 저장해서 리턴...
+					//그러나 이방법은 cnt가 0보다 크면 성공적으로 insert 했다는 의미이기 때문에 사용할 이유가 없다. 그냥 간단하게 리턴을 넘겨주는 편이 간결하다.
+					
+					int ntno = rs.getInt("notice_no");
+					String filename = rs.getString("filename");
+					String oriname = rs.getString("oriname");
+					String filetype = rs.getString("filetype"); 
+					long filesize = rs.getLong("filesize");
+					NoticeFile noticeFile = new NoticeFile();
+					noticeFile.setNotice_no(ntno);
+					noticeFile.setFile_name(filename);
+					noticeFile.setOri_name(oriname);
+					noticeFile.setFile_type(filetype);
+					noticeFile.setFile_size(filesize);
+					
+					return noticeFile;
+					*/
+					
+					//방법2
+					return new NoticeFile(file.getNotice_no(),
+										file.getFile_name(),
+										file.getOri_name(),
+										file.getFile_type(),
+										file.getFile_size()
+										);
+
+				
+			}
+				return null;
+		}finally {
+			JdbcUtil.close(rs);
+			JdbcUtil.close(stmt);
+			JdbcUtil.close(pstmt);
+		}		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+	
+		
+}
+	//특정 글 파일정보 조회
+	public NoticeFile selectFileInfo(Connection conn, int no) throws SQLException {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String sql = "select notice_no, filename, oriname, filetype, filesize from file_upload where notice_no=?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, no);
+			rs = pstmt.executeQuery();
+//			NoticeFile noticeFile = new NoticeFile();
+			if(rs.next()) {
+//				noticeFile.setNotice_no(rs.getInt(1));
+//				noticeFile.setFile_name(rs.getString(2));
+//				noticeFile.setOri_name(rs.getString(3));
+//				noticeFile.setFile_type(rs.getString(4));
+//				noticeFile.setFile_size(rs.getLong(5));
+//			}
+//			return noticeFile;
+			return new NoticeFile(rs.getInt(1),
+									rs.getString(2),
+									rs.getString(3),
+									rs.getString(4),
+									rs.getLong(5));
+			}
+		
+		
+			return null;
+		
+		}finally {
+			JdbcUtil.close(rs);
+			JdbcUtil.close(pstmt);
+		}
+		
+	}
+	
+	
+	
+	
+	
+	//전체 File 업로드 목록 조회
+	public List<NoticeFile> listFile(Connection conn) {
+
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		List<NoticeFile> nfList = new ArrayList<NoticeFile>();
+		String sql = "select notice_no, filename, oriname, filetype, filesize from file_upload";
+		
+		try {
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				NoticeFile noticeFile = new NoticeFile(); //계속 새로운 객체 생성 안하면 한 객체가 계속 뒤집어 쓴다. 그래서 새로운 객체 생성은 무조건 반복문 안에서 해줘야한다. List경우
+				noticeFile.setNotice_no(rs.getInt(1));
+				noticeFile.setFile_name(rs.getString(2));
+				noticeFile.setOri_name(rs.getString(3));
+				noticeFile.setFile_type(rs.getString(4));
+				noticeFile.setFile_size(rs.getLong(5));
+
+				nfList.add(noticeFile);
+			} 
+			
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}finally {
+			JdbcUtil.close(rs);
+			JdbcUtil.close(pstmt);
+		}
+		return nfList;
 	
 	}
 	

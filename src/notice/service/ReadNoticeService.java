@@ -2,10 +2,13 @@ package notice.service;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import auth.service.User;
 import notice.dao.NoticeContentDAO;
 import notice.dao.NoticeDAO;
 import notice.model.Notice;
 import notice.model.NoticeContent;
+import notice.model.NoticeFile;
+import jdbc.JdbcUtil;
 import jdbc.conn.ConnectionProvider;
 
 //p658
@@ -54,8 +57,33 @@ public class ReadNoticeService {
 	}
 	
 	
+
+	//특정 업로드 된 파일내용 로드
+	public NoticeFile getFile(int no) {
+		Connection conn = null;
+		try {
+			conn = ConnectionProvider.getConnection();
+			System.out.println("상세조회!!!!!!!!!!!!!!!!"+no);
+			
+			NoticeFile noticeFile = noticeDAO.selectFileInfo(conn, no);
+				if( noticeFile.getFile_name()==null && noticeFile.getOri_name()==null && noticeFile.getFile_type()==null && noticeFile.getFile_size()==0 ){
+				//if( noticeFile.getFile_name()==null){
+					return null;
+				}
+				return noticeFile;
+
+				 
+			}catch (SQLException e) {
+				e.printStackTrace();
+				JdbcUtil.rollback(conn);
+			}catch (RuntimeException e) {
+				JdbcUtil.rollback(conn);
+			}finally {
+				JdbcUtil.close(conn);
+			}
+		return null;
+	}
 	
-	//생성자
 	
 	
 	
@@ -64,6 +92,4 @@ public class ReadNoticeService {
 	
 	
 	
-	
-	//메소드
 }

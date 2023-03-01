@@ -7,11 +7,15 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import notice.service.WriteNoticeService;
-import notice.model.Writer;
-import notice.service.WriteRequest;
+import com.oreilly.servlet.MultipartRequest;
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+
 import auth.service.User;
 import mvc.command.CommandHandler;
+import notice.model.NoticeFile;
+import notice.model.Writer;
+import notice.service.WriteNoticeService;
+import notice.service.WriteRequest;
 
 
 
@@ -94,7 +98,7 @@ public class WriteNoticeHandler implements CommandHandler {
 		 return authUser; 
 	 }
 	 
-
+	 
 	// 쓰기처리-p641 35라인
 	private String processSubmit(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
@@ -125,24 +129,74 @@ public class WriteNoticeHandler implements CommandHandler {
 		//로그인한 유저정보는 세션에서 받자
 		User authUser = loginedUser(request);
 		
+		//파일 업로드
+		MultipartRequest multi = null; 
+		String saveFolder = request.getServletContext().getRealPath("/upload"); 
+		String encType = "UTF-8";
+		int maxSize = 20*1024*1024;
+		multi = new MultipartRequest(request, saveFolder, maxSize, encType, new	DefaultFileRenamePolicy()); 
+		
+		
+		// 테스트용 출력
+		//multi.getFilesystemName, getOriginalFileName, getContentType 은 String타입이라 파일 업로드를 안하면
+		//자동으로 null로 초기화 되지만.... getFile("uploadFile").length() 은 long타입이가 자동 초기화가 0으로 해야하는데 아예 DB에 박히지 않으니 nullpointexception 뜬다....
+/*		String tfFile1 = multi.getFilesystemName("uploadFile"); 
+		String tfFile2 = multi.getOriginalFileName("uploadFile");
+		String tfFile3 = multi.getContentType("uploadFile");
+		System.out.println(tfFile1);
+		System.out.println(tfFile2);
+		System.out.println(tfFile3);
+		Long tfFile4 = multi.getFile("uploadFile").length();
+		System.out.println(tfFile4);
+		*/
 
+//		String fileName = multi.getFilesystemName("uploadFile"); 
+//		String originName =	multi.getOriginalFileName("uploadFile"); 
+//		String type = multi.getContentType("uploadFile");
+//		long length = multi.getFile("uploadFile").length(); 
+		//Part filePart = request.getPart("uploadFile");
+		//filePart.getInputStream();
+		//String fileSize = multi.getFile(multipartFile.getName() ).getSize();
+		//File f = multi.getFile("uploadFile");
+		
+		
 		
 		// 유효성검사 - p641 41라인
 		Map<String, Boolean> errors = new HashMap<String, Boolean>(); // Map 은 인터페이스 이므로 구현 클래스는 자식클래스로 해야한다.
 		request.setAttribute("errors", errors);// p641 37라인
-		WriteRequest writeReq = createWriteRequest(authUser, request);
+		WriteRequest writeReq = createWriteRequest(authUser, multi);
+//		WriteRequest writeReq = createWriteRequest(authUser, request);
 //		WriteRequest writeReq = createWriteRequest(request);
 		writeReq.validate(errors);
-		
+		System.out.println("!!!!!!!!!!!!!"+errors);
 		if (!errors.isEmpty()) {
 			return FORM_VIEW;
 		}
 		// 2.비즈니스로직처리 Controller->Service->DAO->DB->DAO->Service->Controller
 		//파라미터  WriteRequest writeReq : Writer(로그인한 유저id, 로그인한 유저명), 입력제목, 입력내용*/
 		//리턴타입 Integer : notice테이블에 입력된 글번호
-//		int newNoticeNo = writeNoticeService.write(writeReq); //  ★★★★★★★★★★※emp_no 참조키 제약사항 걸기 전 소스
-		int newNoticeNo = writeNoticeService.write(writeReq, authUser); //Integer 타입에서 언박싱된것 이건 큰것에서 작은것으로 ~! 이건 자동 언박싱 또는 자동형변환이다.
+//		int newNoticeNo = writeNoticeService.write(writeReq); //  //Integer 타입에서 언박싱된것 이건 큰것에서 작은것으로 ~! 이건 자동 언박싱 또는 자동형변환이다. ★★★★★★★★★★※emp_no 참조키 제약사항 걸기 전 소스
+		
+		
+		
+		int newNoticeNo=0;
+		NoticeFile noticeFile = null;
+		if(multi.getFilesystemName("uploadFile") != null) {
+			newNoticeNo = writeNoticeService.write(writeReq, authUser); //★★★★★★★★★★※emp_no 참조키 제약사항 설정된 소스
+			noticeFile = writeNoticeService.fileWrite(writeReq, authUser); //★★★★★★★★★★※emp_no 참조키 제약사항 설정된 소스
+			System.out.println("글, 파일 둘다~~~~~~~~~~~~~~~");
+		}else {
+			newNoticeNo = writeNoticeService.write(writeReq, authUser);
+			System.out.println("글만~~~~~~~~~~~~~~~~~~~~~");
+		}
+	
+
+		
+		
+//		int newNoticeNo = writeNoticeService.write(writeReq, authUser, fileName, originName); //★★★★★★★★★★※emp_no 참조키 제약사항 설정 및 파일 첨부까지
 		request.setAttribute("newNoticeNo", newNoticeNo); //-->그런데 다시 오브젝트 타입... 이럴거면 언박싱하는 의미가...
+		request.setAttribute("noticeFile", noticeFile); //
+		//request.setAttribute("noticeFile", finalUnit); //
 		request.setAttribute("rowSize", rowSize); //로우사이즈
 		request.setAttribute("pageNo", pageNo); //
 		
@@ -151,21 +205,92 @@ public class WriteNoticeHandler implements CommandHandler {
 
 	}//processSubmit()끝
 
+	
+	
 	// 유효성검사-p641 53라인
 	//리턴유형 WriteRequest : Writer(로그인한 유저id, 로그인한 유저명), 입력제목, 입력내용
-	private WriteRequest createWriteRequest(User authUser, HttpServletRequest request) {
+	private WriteRequest createWriteRequest(User authUser, MultipartRequest multi) {
 //	private WriteRequest createWriteRequest(String authUser, HttpServletRequest request) {
-		
 		//String title = request.getParameter("title"); // 제목
 		//String content = request.getParameter("content"); // 내용
 		//String title = ; // 제목
 		//String content = ; // 내용
+
 		
-		return new WriteRequest(
-				new Writer( authUser.getEmp_id(), 
+		
+		
+		// multi.getFile("uploadFile").length() 자체가 long타입인데 파일 업로드를 안하면 아예 값이 없는 상태라서... error 가 나버린다.
+//------------------------------------내가 짠 소스--------------------------------------
+		if(multi.getFilesystemName("uploadFile") == null) {
+			return new WriteRequest(
+					new Writer( authUser.getEmp_id(), 
 							authUser.getEmp_kname()),
-							request.getParameter("title"), 
-							request.getParameter("content"));
+					multi.getParameter("title"), 
+					multi.getParameter("content"),
+					new NoticeFile(0,
+							multi.getFilesystemName("uploadFile"),
+							multi.getOriginalFileName("uploadFile"),
+							multi.getContentType("uploadFile"),
+							0)
+					);			
+		}else {
+			return new WriteRequest(
+					new Writer( authUser.getEmp_id(), 
+							authUser.getEmp_kname()),
+					multi.getParameter("title"), 
+					multi.getParameter("content"),
+					new NoticeFile(0,
+							multi.getFilesystemName("uploadFile"),
+							multi.getOriginalFileName("uploadFile"),
+							multi.getContentType("uploadFile"),
+							multi.getFile("uploadFile").length())
+							);
+		}
+		
+		
+		
+//----------------------------------한별 소스---------------------------------------------	솔직히 이게 더 간결	
+		/*
+		if(multi.getFilesystemName("uploadFile") != null) {
+			return new WriteRequest(
+					new Writer( authUser.getEmp_id(), 
+								authUser.getEmp_kname()),
+								multi.getParameter("title"), 
+								multi.getParameter("content"),
+						new NoticeFile(0,
+										multi.getFilesystemName("uploadFile"),
+										multi.getOriginalFileName("uploadFile"),
+										multi.getContentType("uploadFile"),
+										multi.getFile("uploadFile").length())
+					);		
+		}else {
+			return new WriteRequest(
+					new Writer( authUser.getEmp_id(), 
+								authUser.getEmp_kname()),
+								multi.getParameter("title"), 
+								multi.getParameter("content"), null
+					);		
+			
+		}
+	*/
+		
+		
+//----------------------------------예전 원래 소스---------------------------------------------
+		
+//		return new WriteRequest(
+//				new Writer( authUser.getEmp_id(), 
+//							authUser.getEmp_kname()),
+//							request.getParameter("title"), 
+//							request.getParameter("content"));
+//		
+		
+		
+//		return new WriteRequest(
+//				new Writer( authUser.getEmp_id(), 
+//							authUser.getEmp_kname()),
+//							request.getParameter("title"), 
+//							request.getParameter("content"),
+//							request.getParameter("uploadFile"));
 
 		}
 

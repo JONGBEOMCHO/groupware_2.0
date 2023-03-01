@@ -4,9 +4,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import jdbc.JdbcUtil;
+import jdbc.conn.ConnectionProvider;
 import notice.dao.NoticeDAO;
 import notice.model.Notice;
-import jdbc.conn.ConnectionProvider;
+import notice.model.NoticeFile;
 
 //p650
 //
@@ -81,6 +83,24 @@ public class ListNoticeService {
 		throw new RuntimeException();
 		}
 
+	}
+
+
+	public List<NoticeFile> listFile() {
+		Connection conn=null;
+		try {
+			conn = ConnectionProvider.getConnection();
+
+			List<NoticeFile> noticleFile = noticeDAO.listFile(conn);
+		
+		
+			return noticleFile;
+		
+		}catch(SQLException e) {
+			throw new RuntimeException();
+		}finally {
+			JdbcUtil.close(conn);
+		}
 	}
 	
 	

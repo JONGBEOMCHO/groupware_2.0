@@ -52,7 +52,7 @@
 /*   border-radius: 0 10px 10px 0; */
 /* } */
 		.t1{ 
-		width: 950px;
+		width: 1150px;
  	    margin-left: auto; 
  	    margin-right: auto; 
 /* 		border: 1px solid black; */
@@ -83,6 +83,8 @@
 	 	}
 	 	#ct{ width:60px; background: #C5CAD7;
 	 	}
+	 	#rf{ width:60px; background: #C5CAD7;
+	 	}
 	 	
 	 	td {
 	    width: 120px;
@@ -98,8 +100,8 @@
 	 	
 	 	h1 { text-align: center; }
 
-		#bwr {margin:0 auto; max-width:950px; inline-block;}
-		#sch {margin:0 auto; max-width:950px; inline-block;} 
+		#bwr {margin:0 auto; max-width:1150px; inline-block;}
+		#sch {margin:0 auto; max-width:1150px; inline-block;} 
 	 	#sub{
 	 	  color: white;
 		  text-align: center;
@@ -242,8 +244,10 @@ ${noticePage.content} <hr/><hr/><hr/> --%>
 
 
 <%-- <a href="<%=request.getContextPath()%>/index.jsp">HOME</a> --%>
-<!-- <p class="home" style="text-align: left; margin-left:150px;"> -->
-
+<%-- <a href="<%=request.getContextPath()%>/chat.do">HOME</a> --%>
+<p class="home" style="margin:0 auto; max-width: 950px;">
+<a href="<%=request.getContextPath()%>/chat.do">HOME</a>
+</p>
 <hr/>
  
 <%--  ${param.keyword} --%>
@@ -287,6 +291,7 @@ ${noticePage.content} <hr/><hr/><hr/> --%>
  			<th id="rd">작성일</th>
  			<th id="md">최종수정일</th>
  			<th id="ct">조회수</th>
+ 			<th id="rf">첨부<br/>파일</th>
  		</tr>
  	</thead>
  
@@ -297,7 +302,7 @@ ${noticePage.content} <hr/><hr/><hr/> --%>
  	<c:if test="${empty keyword or (keyword eq '')}">
 	 	<c:if test="${noticePage.hasNoNotices()}"> 
 	 	 <tr>
-	 		<td colspan="6" style="text-align:center;">게시글이 없습니다.</td>
+	 		<td colspan="7" style="text-align:center;">게시글이 없습니다.</td>
 	 	</tr>
 	 	</c:if>
  	</c:if>
@@ -306,7 +311,7 @@ ${noticePage.content} <hr/><hr/><hr/> --%>
  	 <c:if test="${not empty keyword or (keyword ne '')}">
 	 	<c:if test="${noticePage.hasNoNotices()}"> 
 	 	 <tr>
-	 		<td colspan="6" style="text-align:center;">결과가 없습니다.</td>
+	 		<td colspan="7" style="text-align:center;">결과가 없습니다.</td>
 	 	</tr>
 	 	</c:if>
  	</c:if>
@@ -323,7 +328,7 @@ ${noticePage.content} <hr/><hr/><hr/> --%>
  	
 <%--  	<c:forEach var="item" items="${listNotice}"> --%>
 	<c:if test="${noticePage.hasNotices()}"> 
- 	<c:forEach var="item" items="${noticePage.content}">
+ 	<c:forEach var="item" items="${noticePage.content}" varStatus="status">
  	<tr>
  		<td>${item.number}</td>
  		<td><a href="<%=request.getContextPath()%>/notice/read.do?no=${item.number}&pageNo=${noticePage.currentPage}&rowSize=${rowSize}">${item.title}</a></td>
@@ -337,6 +342,14 @@ ${noticePage.content} <hr/><hr/><hr/> --%>
  			<fmt:formatDate pattern="yyyy.MM.dd. HH:mm:ss" type="date" value="${item.regdate}" /></td>
  		<td><fmt:formatDate pattern="yyyy.MM.dd. HH:mm:ss" type="date" value="${item.moddate}" /></td>
  		<td>${item.read_cnt}</td>
+ 		<td>
+ 		<c:forEach var="item2" items="${noticeFile}">
+	 		<c:if test="${item2.notice_no==item.number}">
+	 			<img class="file-img" src="../assets/images/clip2.png" width="20px" height="20px"/>
+	 		</c:if> 
+		</c:forEach>
+ 		
+ 		</td>
  	</tr>
  	</c:forEach>
  	</c:if>
