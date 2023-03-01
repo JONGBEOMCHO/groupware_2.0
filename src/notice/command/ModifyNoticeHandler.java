@@ -159,7 +159,15 @@ public class ModifyNoticeHandler implements CommandHandler {
 			NoticeData noticeData1 =  readService.getNotice(no, true);
 			NoticeFile noticeFile =  readService.getFile(no);
 			
-			String finalUnit= unitConvert(noticeFile.getFile_size());
+			//String finalUnit= unitConvert(noticeFile.getFile_size());
+			String finalUnit=null;
+			if(noticeFile != null) {
+				finalUnit= unitConvert(noticeFile.getFile_size());
+				request.setAttribute("finalUnit", finalUnit);
+			}
+			
+			
+			
 			
 			//3.Model(비즈니스로직 수행결과)처리 & 4.View - p670 53라인
 			request.setAttribute("modReq", modReq);

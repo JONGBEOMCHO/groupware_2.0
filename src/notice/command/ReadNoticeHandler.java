@@ -64,16 +64,18 @@ public class ReadNoticeHandler implements CommandHandler {
 		/*NoticeData : notice테이블과 notice_content테이블 관련 데이터*/
 		NoticeData noticeData =  readService.getNotice(no, true);
 		noticeFile = readService.getFile(no);
-		System.out.println("@@@@@@@@@@크레이트!@"+noticeFile.getFile_size());
-		String finalUnit= unitConvert(noticeFile.getFile_size());
+		if(noticeFile != null) {
+			String finalUnit= unitConvert(noticeFile.getFile_size());
+			request.setAttribute("finalUnit", finalUnit);
+		}
+//		System.out.println("@@@@@@@@@@크레이트!@"+noticeFile.getFile_size());
 		
-		System.out.println("@@@@@@@@파이널!!!!!"+finalUnit);
+		
 		
 		//3.Model(비즈니스로직 수행결과)처리
 		//릴레이용 pageNo=요청페이지&rowSize=1페이지당 게시글수
 		request.setAttribute("noticeData", noticeData);
 		request.setAttribute("noticeFile", noticeFile);
-		request.setAttribute("finalUnit", finalUnit);
 		request.setAttribute("pageNo", pageNo);
 		request.setAttribute("rowSize", rsize);
 		
